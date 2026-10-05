@@ -1,0 +1,224 @@
+<div class="header position-sticky top-0 p-2 border-bottom border-dark">
+	<h3 class="text-center" data-i18n="menu.header"></h3>	<!-- 超級瑪利歐 奧德賽 -->
+
+	<div class="row mb-2">
+		<div class="col">
+			<select class="form-select form-select-sm"
+				data-help="menu.maps.help"
+				ng-model="body.map"
+				ng-options="m.name for m in body.maps"
+				ng-focus="body.onMapFocus()"
+				ng-change="body.onMapChange()">
+			</select>
+		</div>
+	</div>
+
+	<div class="row mb-2">
+		<div class="col">
+			<div class="input-group input-group-sm">
+				<input type="text" id="search" class="form-control" data-help="menu.search.help" ng-model="body.search" ng-change="body.onSearchChange()" />	<!-- i18n: menu.search_placeholder (搜尋標記 (用 ; 隔開)) -->
+				<button class="btn btn-outline-danger" type="button" data-i18n="menu.search_clear" data-help="menu.search_clear.help" ng-click="body.clearFilter()"></button>	<!-- 清除 -->
+			</div>
+		</div>
+	</div>
+
+	<div class="row text-center">
+		<div class="col">
+			<button type="button" class="btn btn-link text-decoration-none" data-i18n="menu.show_all" data-help="menu.show_all.help" ng-click="body.showAll()"></button>	<!-- 顯示全部 -->
+		</div>
+		<div class="col">
+			<button type="button" class="btn btn-link text-decoration-none" data-i18n="menu.hide_all" data-help="menu.hide_all.help" ng-click="body.hideAll()"></button>	<!-- 隱藏全部 -->
+		</div>
+	</div>
+</div>
+
+
+<div class="accordion mb-3 mt-2">
+	<div class="header row g-0">
+		<div class="col"></div>
+		<div class="col-8 text-center">
+			<p class="mb-0">
+				<span class="fs-4" data-i18n="menu.markers"></span>	<!-- 標記 -->
+				<small data-help="help.total_found_markers">(<span ng-bind="body.total_found_markers"></span> / <span ng-bind="body.total_markers"></span>)</small>
+			</p>
+		</div>
+		<div class="col text-end pe-1">
+			<div class="dropdown">
+				<button type="button" class="btn btn-link btn-sm" data-bs-toggle="dropdown" aria-expanded="false">
+					<i class="bi bi-three-dots-vertical"></i>
+				</button>
+				<ul class="dropdown-menu">
+					<li><button type="button" class="dropdown-item" data-i18n="expand" data-help="menu.expand.help" ng-click="body.expand()"></button></li>	<!-- 展開 -->
+					<li><button type="button" class="dropdown-item" data-i18n="collapse" data-help="menu.collapse.help" ng-click="body.collapse()"></button></li>	<!-- 收合 -->
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div class="accordion-item" data-help="help.toggle_hidden_cat" ng-repeat="c in body.cats" ng-class="{hidden:c.hidden}">
+		<div class="accordion-header py-1 px-2 d-flex clickable">
+			<div class="w-100" ng-click="body.toggleHidden(c)">
+				<img class="icon me-2" ng-src="{* c.icon *}" />
+				<span class="align-middle" ng-class="{'text-decoration-line-through':c.hidden}" ng-bind="c.name"></span>
+			</div>
+			<div class="open-submenu collapsed fs-4" data-bs-toggle="collapse" data-bs-target="#cat-body-{* c.cat_id *}" aria-expanded="false" aria-controls="cat-body-{* c.cat_id *}">
+				<i class="bi bi-chevron-up"></i>
+			</div>
+		</div>
+		<div id="cat-body-{* c.cat_id *}" class="accordion-collapse collapse">
+			<div class="accordion-body pt-0">
+				<div class="d-flex justify-content-between align-items-center pb-1">
+					<div data-help="help.cat_found_markers"><span ng-bind="c.found_count"></span> / <span ng-bind="::c.markers.length"></span></div>
+					<div class="dropdown">
+						<button type="button" class="btn btn-link btn-sm" data-bs-toggle="dropdown" aria-expanded="false">
+							<i class="bi bi-three-dots-vertical"></i>
+						</button>
+						<ul class="dropdown-menu">
+							<li><button type="button" class="dropdown-item" data-help="help.set_found_cat" ng-click="body.setFound(c)" ng-bind="body.t('found')"></button></li>	<!-- 已發現 -->
+							<li><button type="button" class="dropdown-item" data-help="help.reset_found_cat" ng-click="body.resetFound(c)" ng-bind="body.t('reset')"></button></li>	<!-- 重置 -->
+						</ul>
+					</div>
+				</div>
+				<div class="list-group" data-help="help.toggle_hidden_marker">
+					<a href="javascript:;" class="list-group-item list-group-item-action" ng-repeat="m in c.markers"
+						ng-class="{found:m.options.found}"
+						ng-click="body.toggleFound(m)">{* m.options.tooltip *}</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<div class="mb-3">
+	<div class="header">
+		<h4 class="text-center">本地增强</h4>
+	</div>
+	<div class="sidebar-container">
+		<ul class="list-group">
+			<li class="list-group-item list-group-item-action d-flex align-items-center justify-content-between">
+				<a href="achievements.html" target="_blank" class="text-decoration-none w-100 d-flex align-items-center justify-content-between">
+					<span>🏆 成就月亮清单 <small class="text-muted">(64)</small></span>
+					<i class="bi bi-box-arrow-up-right"></i>
+				</a>
+			</li>
+		</ul>
+	</div>
+</div>
+
+
+<div class="settings mb-3">
+	<div class="header">
+		<h4 class="text-center" data-i18n="menu.settings"></h4>	<!-- 設定 -->
+	</div>
+	<div class="sidebar-container">
+		<ul class="list-group">
+			<li class="list-group-item list-group-item-action d-flex align-items-center" data-help="menu.language.help">
+				<label class="col-form-label-sm w-100" for="language" data-i18n="menu.language"></label>	<!-- 語言 -->
+				<select id="language" class="form-select form-select-sm w-auto"
+					ng-model="body.settings.language"
+					ng-options="o.iso_code as o.lang for o in body.lang_options"
+					ng-change="body.onLangChange()">
+				</select>
+			</li>
+			<li class="list-group-item list-group-item-action d-flex align-items-center" data-help="menu.hide_found_markers.help">
+				<label class="col-form-label-sm w-100" for="hide-found-markers" data-i18n="menu.hide_found_markers"></label>	<!-- 隱藏已發現的標記 -->
+				<input type="checkbox" id="hide-found-markers" class="form-check-input mt-0" ng-model="body.settings.hide_found_markers" ng-change="body.hideFoundMarkers()" />
+			</li>
+			<li class="list-group-item list-group-item-action d-flex align-items-center" data-help="menu.show_coordinates.help">
+				<label class="col-form-label-sm w-100" for="show-coordinates" data-i18n="menu.show_coordinates"></label>	<!-- 點擊地圖顯示座標 -->
+				<input type="checkbox" id="show-coordinates" class="form-check-input mt-0" ng-model="body.settings.show_coordinates" />
+			</li>
+			<li class="list-group-item list-group-item-action d-flex align-items-center" data-help="menu.overlapping_marker_spiderfy.help">
+				<label class="col-form-label-sm w-100" for="overlapping-marker-spiderfy" data-i18n="menu.overlapping_marker_spiderfy"></label>	<!-- 展開重疊的標記 -->
+				<input type="checkbox" id="overlapping-marker-spiderfy" class="form-check-input mt-0" ng-model="body.settings.overlapping_marker_spiderfy" ng-change="body.overlappingMarkerSpiderfy()" />
+			</li>
+			<li class="list-group-item list-group-item-action d-flex align-items-center" data-help="menu.disable_marker_popup.help">
+				<label class="col-form-label-sm w-100" for="disable-marker-popup" data-i18n="menu.disable_marker_popup"></label>	<!-- 禁用標記彈窗 -->
+				<input type="checkbox" id="disable-marker-popup" class="form-check-input mt-0" ng-model="body.settings.disable_marker_popup" />
+			</li>
+			<li class="list-group-item list-group-item-action d-flex align-items-center" data-help="menu.dblclick_zoom_in.help">
+				<label class="col-form-label-sm w-100" for="dblclick-zoom-in" data-i18n="menu.dblclick_zoom_in"></label>	<!-- 雙擊地圖放大 -->
+				<input type="checkbox" id="dblclick-zoom-in" class="form-check-input mt-0" ng-model="body.settings.dblclick_zoom_in" ng-change="body.dblclickZoomIn()" />
+			</li>
+			<li class="list-group-item list-group-item-action d-flex align-items-center" data-help="menu.show_help.help">
+				<label class="col-form-label-sm w-100" for="show-help" data-i18n="menu.show_help"></label>	<!-- 顯示幫助 -->
+				<input type="checkbox" id="show-help" class="form-check-input mt-0" ng-model="body.settings.show_help" />
+			</li>
+			<li class="list-group-item list-group-item-action d-flex align-items-center" data-help="menu.marker_size.help">
+				<label class="col-form-label-sm w-100" for="marker-size" data-i18n="menu.marker_size"></label>	<!-- 標記大小 -->
+				<select id="marker-size" class="form-select form-select-sm w-auto"
+					ng-model="body.settings.marker_size"
+					ng-change="body.onMarkerSizeChange()">
+					<option value="0.6">60%</option>
+					<option value="0.7">70%</option>
+					<option value="0.8">80%</option>
+					<option value="0.9">90%</option>
+					<option value="1">100%</option>
+					<option value="1.25">125%</option>
+					<option value="1.5">150%</option>
+					<option value="1.75">175%</option>
+					<option value="2">200%</option>
+				</select>
+			</li>
+			<li class="list-group-item list-group-item-action d-flex align-items-center" data-help="menu.reset_markers.help" ng-click="body.resetMarkers()">
+				<label class="col-form-label-sm w-100" data-i18n="menu.reset_markers"></label>	<!-- 重置標記 -->
+				<i class="bi bi-arrow-return-right"></i>
+			</li>
+			<li class="list-group-item list-group-item-action d-flex align-items-center" data-help="menu.reset_settings.help" ng-click="body.resetSettings()">
+				<label class="col-form-label-sm w-100 text-danger" data-i18n="menu.reset_settings"></label>	<!-- 重置設定 -->
+				<i class="bi bi-arrow-return-right"></i>
+			</li>
+		</ul>
+	</div>
+</div>
+
+
+<div class="mb-3" ng-if="body.editing">
+	<div class="header">
+		<h4 class="text-center" data-i18n="menu.administrator"></h4>	<!-- 管理員 -->
+	</div>
+	<div class="sidebar-container">
+		<ul class="list-group">
+			<li class="list-group-item list-group-item-action d-flex align-items-center">
+				<label class="col-form-label-sm w-100" for="marker-editing" data-i18n="menu.marker_editing"></label>	<!-- 啟用標記編輯 -->
+				<input type="checkbox" id="marker-editing" class="form-check-input mt-0" ng-model="body.marker_editing" />
+			</li>
+			<li class="list-group-item list-group-item-action d-flex align-items-center">
+				<label class="col-form-label-sm w-100" for="add-new-marker-dblclick" data-i18n="menu.add_new_marker_dblclick"></label>	<!-- 雙擊地圖新增標記 -->
+				<input type="checkbox" id="add-new-marker-dblclick" class="form-check-input mt-0" ng-model="body.add_new_marker_dblclick" ng-change="body.addNewMarkerDblclick()" />
+			</li>
+			<li class="list-group-item list-group-item-action d-flex align-items-center" ng-click="body.addNewMarker()">
+				<label class="col-form-label-sm w-100" data-i18n="menu.add_new_marker"></label>	<!-- 新增標記 -->
+				<i class="bi bi-arrow-return-right"></i>
+			</li>
+			<li class="list-group-item list-group-item-action">
+				<div class="input-group input-group-sm">
+					<select class="form-select"
+						ng-model="body.center"
+						ng-options="o.name for o in body.saved_centers">
+						<option value="" data-i18n="menu.center"></option>	<!-- -- 中心點 -- -->
+					</select>
+					<button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" data-i18n="menu.action"></button> <!-- 操作 -->
+					<ul class="dropdown-menu dropdown-menu-end">
+						<li><a class="dropdown-item" href="javascript:;" data-i18n="save" ng-click="body.saveCenter()"></a></li>	<!-- 儲存 -->
+						<li><a class="dropdown-item text-danger" href="javascript:;" data-i18n="clear" ng-click="body.clearCenters()"></a></li>	<!-- 清空 -->
+					</ul>
+					<button type="button" class="btn btn-outline-primary" data-i18n="menu.pan_to" ng-click="body.panToCenter()"></button>	<!-- 移動 -->
+				</div>
+			</li>
+			<li class="list-group-item list-group-item-action">
+				<div class="d-grid gap-2 col-6 mx-auto">
+					<button type="button" class="btn btn-outline-secondary btn-sm" data-i18n="menu.import_markers" ng-click="body.importMarkers()"></button>	<!-- 匯入標記 -->
+					<input type="file" id="importer" class="d-none" accept=".txt" onchange="angular.element(this).scope().importerChanged(this)" />
+				</div>
+			</li>
+		</ul>
+	</div>
+</div>
+
+
+<div class="footer position-sticky bottom-0 py-2 px-4 border-top border-dark" ng-show="body.settings.show_help">
+	<div class="help-container">
+		<p class="fw-bolder mb-0" data-i18n="help.default" ng-bind="body.help"></p>
+	</div>
+</div>

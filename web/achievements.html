@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>成就月亮清单 · 超级马力欧 奥德赛</title>
+<link rel="stylesheet" href="vendor/bootstrap.min.css" />
+<link rel="stylesheet" href="vendor/bootstrap-icons.min.css" />
+<style>
+  body { background:#f6f7f9; color:#212529; padding-bottom:4rem; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 1.5rem 1rem; }
+  h1 { font-size:1.5rem; font-weight:700; }
+  .sub { color:#6c757d; font-size:.92rem; }
+  .card-group-title { display:flex; align-items:center; gap:.5rem; font-weight:600; margin:1.6rem 0 .6rem; font-size:1.05rem; }
+  .card-group-title i { color:#0d6efd; }
+  .item { display:flex; align-items:flex-start; gap:.65rem; padding:.6rem .75rem; background:#fff;
+          border:1px solid #e5e7eb; border-radius:.5rem; margin-bottom:.4rem; cursor:pointer; transition:.12s; }
+  .item:hover { border-color:#0d6efd; box-shadow:0 1px 4px rgba(13,110,253,.12); }
+  .item.done { background:#f0fdf4; border-color:#86efac; }
+  .item.done .zh { text-decoration:line-through; color:#6b7280; }
+  .item input { margin-top:.28rem; flex:0 0 auto; width:1.05rem; height:1.05rem; cursor:pointer; }
+  .num { flex:0 0 auto; color:#9ca3af; font-size:.78rem; font-variant-numeric:tabular-nums; margin-top:.15rem; }
+  .zh { font-weight:500; }
+  .en { display:block; color:#9ca3af; font-size:.76rem; margin-top:.1rem; }
+  .sticky-bar { position:sticky; top:0; z-index:20; background:rgba(246,247,249,.96); backdrop-filter:blur(6px);
+                padding:.8rem 0 .7rem; margin:0 -.2rem 1rem; border-bottom:1px solid #e5e7eb; }
+  .bar-row { display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; }
+  .big { font-size:1.1rem; font-weight:700; font-variant-numeric:tabular-nums; }
+  .progress { flex:1 1 220px; height:1.1rem; margin:0; }
+  .hidden { display:none !important; }
+  a.back { text-decoration:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+    <div>
+      <h1>🏆 成就月亮清单</h1>
+      <div class="sub">蘑菇王国 · Toadette 成就奖励 · 共 <b>64</b> 个力量之月（这些没有地图坐标，达成条件后到蘑菇王国找 Toadette 领取）</div>
+    </div>
+    <a class="back btn btn-sm btn-outline-secondary" href="index.html"><i class="bi bi-arrow-left"></i> 返回地图</a>
+  </div>
+
+  <div class="sticky-bar">
+    <div class="bar-row">
+      <span class="big"><span id="doneCount">0</span> / 64</span>
+      <div class="progress"><div id="bar" class="progress-bar bg-success" style="width:0%"></div></div>
+      <span class="sub" id="pct">0%</span>
+      <input id="search" class="form-control form-control-sm" style="flex:0 1 180px" placeholder="搜索…" />
+      <button class="btn btn-sm btn-outline-primary" id="btnExport"><i class="bi bi-download"></i> 导出</button>
+      <button class="btn btn-sm btn-outline-primary" id="btnImport"><i class="bi bi-upload"></i> 导入</button>
+      <button class="btn btn-sm btn-outline-danger" id="btnReset"><i class="bi bi-arrow-counterclockwise"></i> 重置</button>
+      <input type="file" id="fileInput" accept="application/json" class="hidden" />
+    </div>
+  </div>
+
+  <div id="groups"></div>
+</div>
+
+<script>
+const DATA = [{"group": "剧情推进", "icon": "bi-flag", "items": [{"id": 11, "zh": "记录笔记：井的周围", "en": "Taking Notes: Around the Well"}, {"id": 18, "zh": "永远向前，奇诺比奥队长", "en": "Forever Onward, Captain Toad"}, {"id": 23, "zh": "图片配对：马力欧本尊", "en": "Picture Match: Basically Mario"}, {"id": 44, "zh": "救出碧姬公主", "en": "Rescue Princess Peach"}, {"id": 45, "zh": "为世界上的 14 个王国带来和平", "en": "Bring peace to all 14 kingdoms in the world."}]}, {"group": "收集力量之月", "icon": "bi-moon-stars", "items": [{"id": 46, "zh": "收集 100 个力量之月", "en": "Collect 100 Power Moons"}, {"id": 47, "zh": "收集 300 个力量之月", "en": "Collect 300 Power Moons"}, {"id": 48, "zh": "收集 600 个力量之月", "en": "Collect 600 Power Moons"}, {"id": 50, "zh": "收集 10 个 8位像素力量之月", "en": "Collect 10 8-Bit Power Moons"}, {"id": 51, "zh": "收集 20 个 8位像素力量之月", "en": "Collect 20 8-Bit Power Moons"}, {"id": 52, "zh": "从 15 个宝箱中收集力量之月", "en": "Collect Power Moons from 15 treasure chests"}, {"id": 53, "zh": "从 25 个宝箱中收集力量之月", "en": "Collect Power Moons from 25 treasure chests"}, {"id": 54, "zh": "通过记录笔记 5 次收集力量之月", "en": "Collect Power Moons from taking Notes 5 times"}, {"id": 55, "zh": "通过记录笔记 20 次收集力量之月", "en": "Collect Power Moons from taking Notes 20 times"}, {"id": 56, "zh": "通过计时挑战 10 次收集力量之月", "en": "Collect Power Moons from Timer Challenges 10 times"}, {"id": 57, "zh": "在计时挑战中收集力量之月 25 次", "en": "Collect Power Moons from Timer Challenges 25 times"}, {"id": 79, "zh": "使用提示画收集 5 个力量之月", "en": "Collect 5 Power Moons using Hint Art"}, {"id": 80, "zh": "使用提示画收集 15 个力量之月", "en": "Collect 15 Power Moons using Hint Art"}]}, {"group": "收集物品", "icon": "bi-bag", "items": [{"id": 49, "zh": "使用地区货币购买 13 件物品", "en": "Buy 13 things using regional coins"}, {"id": 86, "zh": "收集 10 个纪念品和贴纸", "en": "Collect 10 souvenirs and stickers"}, {"id": 87, "zh": "收集 20 个纪念品和贴纸", "en": "Collect 20 souvenirs and stickers"}, {"id": 88, "zh": "收集 40 个纪念品和贴纸", "en": "Collect 40 souvenirs and stickers"}, {"id": 92, "zh": "收集 15 顶帽子", "en": "Collect 15 hats"}, {"id": 93, "zh": "收集 35 顶帽子", "en": "Collect 35 hats"}, {"id": 94, "zh": "收集 15 件服装", "en": "Collect 15 outfits"}, {"id": 95, "zh": "收集 35 件服装", "en": "Collect 35 outfits"}, {"id": 96, "zh": "打开 14 个月之石", "en": "Open 14 Moon Rocks"}, {"id": 100, "zh": "收集 1000 枚金币", "en": "Collect 1000 coins"}, {"id": 101, "zh": "收集 5000 枚金币", "en": "Collect 5000 coins"}, {"id": 102, "zh": "收集 10000 枚金币", "en": "Collect 10000 coins"}]}, {"group": "相遇与互动", "icon": "bi-people", "items": [{"id": 58, "zh": "与奇诺比奥队长相遇 5 次", "en": "Meet up with Captain Toad 5 times"}, {"id": 59, "zh": "与奇诺比奥队长相遇 10 次", "en": "Meet up with Captain Toad 10 times"}, {"id": 60, "zh": "在碧姬公主环游世界时与她相遇 5 次", "en": "Meet up with Princess Peach as she travels the world 5 times"}, {"id": 61, "zh": "在碧姬公主环游世界时与她相遇 10 次", "en": "Meet up with Princess Peach as she travels the world 10 times"}, {"id": 77, "zh": "找到 5 个藏在人们头上的邦尼特", "en": "Find 5 Bonneters hidden on people's heads"}, {"id": 78, "zh": "播放奇诺比奥想听的音乐（5）", "en": "Play the music that Toad wants to hear (5)"}, {"id": 85, "zh": "正确回答斯芬克斯的所有问题（3）", "en": "Answer all of the Sphyx's questions correctly (3)"}, {"id": 97, "zh": "穿过 10 个传送洞", "en": "Travel through 10 warp holes"}, {"id": 98, "zh": "激活 40 个检查点旗帜", "en": "Activate 40 Checkpoint flags"}, {"id": 99, "zh": "激活 80 个检查点旗帜", "en": "Activate 80 Checkpoint flags"}]}, {"group": "挑战与小游戏", "icon": "bi-controller", "items": [{"id": 62, "zh": "赶羊收集力量之月 4 次", "en": "Herd sheep to collect a Power Moon 4 times"}, {"id": 63, "zh": "从栗宝宝那里收集 5 个力量之月", "en": "Collect 5 Power Moons from Goombette"}, {"id": 64, "zh": "附身云龟钓鱼收集力量之月 3 次", "en": "Fish for Power Moons as Lakitu 3 times"}, {"id": 65, "zh": "种植种子收集力量之月 5 次", "en": "Grow seeds to collect Power Moons 5 times"}, {"id": 66, "zh": "种植种子收集力量之月 10 次", "en": "Grow seeds to collect Power Moons 10 times"}, {"id": 67, "zh": "捉住 5 只兔子收集力量之月", "en": "Catch 5 rabbits to collect Power Moons"}, {"id": 68, "zh": "捉住 10 只兔子收集力量之月", "en": "Catch 10 rabbits to collect Power Moons"}, {"id": 81, "zh": "玩老虎机收集 3 个力量之月", "en": "Collect 3 Power Moons playing Slots"}, {"id": 82, "zh": "赢得 10 场慢慢龟赛跑", "en": "Win 10 Koopa Freerunning races"}, {"id": 83, "zh": "赢得 22 场慢慢龟赛跑", "en": "Win 22 Koopa Freerunning races"}, {"id": 84, "zh": "在慢慢龟足迹追踪中获得合格成绩（5）", "en": "Receive passing scores in Koopa Trace-Walking (5)"}]}, {"group": "动作与技巧", "icon": "bi-lightning", "items": [{"id": 69, "zh": "通过踩踏挖出 15 个力量之月", "en": "Dig up 15 Power Moons by Ground Pounding"}, {"id": 70, "zh": "通过踩踏挖出 45 个力量之月", "en": "Dig up 45 Power Moons by Ground Pounding"}, {"id": 71, "zh": "将帽子扔到东西上收集 3 个力量之月", "en": "Collect 3 Power Moons by throwing your hat on things"}, {"id": 72, "zh": "将帽子扔到东西上收集 10 个力量之月", "en": "Collect 10 Power Moons by throwing your hat on things"}, {"id": 73, "zh": "从候鸟那里收集 5 个力量之月", "en": "Collect 5 Power Moons from migrating birds"}, {"id": 74, "zh": "穿着特定服装收集 3 个力量之月", "en": "Collect 3 Power Moons by wearing certain outfits"}, {"id": 75, "zh": "穿着特定服装收集 8 个力量之月", "en": "Collect 8 Power Moons by wearing certain outfits"}, {"id": 76, "zh": "穿着特定服装收集 15 个力量之月", "en": "Collect 15 Power Moons by wearing certain outfits"}, {"id": 89, "zh": "附身 20 个目标", "en": "Capture 20 targets"}, {"id": 90, "zh": "附身 35 个目标", "en": "Capture 35 targets"}, {"id": 91, "zh": "附身 45 个目标", "en": "Capture 45 targets"}, {"id": 103, "zh": "跳跃 10000 次", "en": "Jump 10000 times"}, {"id": 104, "zh": "投掷凯皮 5000 次", "en": "Throw Cappy 5000 times"}]}];
+const KEY = 'smo_achievements_v2';
+let done = new Set();
+if (location.search.indexOf('clear=1') >= 0) { localStorage.removeItem(KEY); history.replaceState(null, '', 'achievements.html'); }
+try { done = new Set(JSON.parse(localStorage.getItem(KEY) || '[]').map(Number)); } catch (e) { done = new Set(); }
+
+function save() { localStorage.setItem(KEY, JSON.stringify([...done].sort((a,b)=>a-b))); }
+
+function render() {
+  const host = document.getElementById('groups');
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  host.innerHTML = '';
+  let shown = 0;
+  DATA.forEach(g => {
+    const hit = g.items.filter(it => !q || it.zh.toLowerCase().includes(q) || it.en.toLowerCase().includes(q) || String(it.id).includes(q));
+    if (!hit.length) return;
+    const head = document.createElement('div');
+    head.className = 'card-group-title';
+    head.innerHTML = '<i class="bi ' + g.icon + '"></i> ' + g.group + ' <span class="sub">(<span class="gdone"></span>/' + hit.length + ')</span>';
+    head.dataset.ids = hit.map(i => i.id).join(',');
+    host.appendChild(head);
+    hit.forEach(it => {
+      const el = document.createElement('label');
+      el.className = 'item' + (done.has(it.id) ? ' done' : '');
+      el.innerHTML = '<input type="checkbox" ' + (done.has(it.id) ? 'checked' : '') + ' />' +
+        '<span class="num">#' + it.id + '</span>' +
+        '<span><span class="zh">' + it.zh + '</span><span class="en">' + it.en + '</span></span>';
+      el.querySelector('input').addEventListener('change', ev => {
+        const id = it.id;
+        if (ev.target.checked) done.add(id); else done.delete(id);
+        save(); update(); refreshGroupCounts();
+        el.classList.toggle('done', ev.target.checked);
+      });
+      host.appendChild(el);
+      shown++;
+    });
+  });
+  if (!shown) host.innerHTML = '<div class="sub" style="padding:1rem 0">没有匹配的成就</div>';
+  update();
+  refreshGroupCounts();
+}
+
+function refreshGroupCounts() {
+  document.querySelectorAll('.card-group-title').forEach(head => {
+    const ids = (head.dataset.ids || '').split(',').filter(Boolean).map(Number);
+    const el = head.querySelector('.gdone');
+    if (el) el.textContent = ids.filter(i => done.has(i)).length;
+  });
+}
+
+function update() {
+  document.getElementById('doneCount').textContent = done.size;
+  const p = Math.round(done.size / 64 * 1000) / 10;
+  document.getElementById('pct').textContent = p + '%';
+  document.getElementById('bar').style.width = p + '%';
+}
+
+document.getElementById('search').addEventListener('input', render);
+document.getElementById('btnExport').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify({app:'SMO-Achievements', version:1, done:[...done].sort((a,b)=>a-b)}, null, 1)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'smo-achievements-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+});
+document.getElementById('btnImport').addEventListener('click', () => document.getElementById('fileInput').click());
+document.getElementById('fileInput').addEventListener('change', ev => {
+  const f = ev.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const j = JSON.parse(r.result);
+      const arr = Array.isArray(j) ? j : (j.done || []);
+      done = new Set(arr.map(Number).filter(n => n >= 11 && n <= 104));
+      save(); render();
+      alert('已导入 ' + done.size + ' 条记录');
+    } catch (e) { alert('文件解析失败：' + e.message); }
+    ev.target.value = '';
+  };
+  r.readAsText(f);
+});
+document.getElementById('btnReset').addEventListener('click', () => {
+  if (confirm('确定清空全部 64 个成就的勾选记录吗？')) { done = new Set(); save(); render(); }
+});
+
+render();
+</script>
+</body>
+</html>

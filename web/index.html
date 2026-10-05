@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+	<head>
+		<!-- Required meta tags -->
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+
+		<!-- 本地化资源（原 CDN 库已下载到 vendor/） -->
+		<link rel="stylesheet" href="vendor/bootstrap.min.css" />
+		<link rel="stylesheet" href="vendor/bootstrap-icons.min.css" />
+		<link rel="stylesheet" href="vendor/leaflet.min.css" />
+		<link rel="stylesheet" href="vendor/toastr.min.css" />
+		<link rel="stylesheet" href="css/main.css" />
+
+		<title>Super Mario Odyssey Map (本地版)</title>
+	</head>
+
+
+	<body ng-controller="BodyCtrl as body">
+		<div id="map"></div>
+
+		<input type="checkbox" id="sidebar-toggle" ng-model="body.settings.sidebar_opened" />
+		<label class="sidebar-toggle-label" for="sidebar-toggle">
+			<div></div>
+			<div></div>
+			<div></div>
+		</label>
+		<div class="sidebar"
+			ng-class="{opened: body.settings.sidebar_opened}"
+			ng-include="body.BASE_URI + '/ng/views/sidebar-menu.html'"
+			onload="body.onSidebarLoaded()"></div>
+
+		<!-- Loading icon -->
+		<div class="ajax-loading-icon" ng-class="{show: body.ajax.isSending()}"><span class="visually-hidden">Loading...</span></div>
+
+		<!-- Reporting Modal -->
+		<div id="reporting-modal" class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header bg-danger text-white">
+						<h5 class="modal-title" data-i18n="reporting"></h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<form name="rf">
+							<p class="h5" ng-bind="body.rf.title"></p>
+							<div class="mb-3">
+								<label class="col-form-label" for="desc" data-i18n="description"></label>
+								<textarea id="desc" class="form-control" rows="5" required minlength="7" maxlength="65535" ng-model="body.rf.desc"></textarea>
+							</div>
+							<div class="row g-3">
+								<div class="col-4 col-md-3">
+									<input type="text" class="form-control" required pattern="\w{5}" maxlength="5" ng-model="body.rf.captcha" />
+								</div>
+								<div class="col">
+									<img class="clickable" ng-src="{* body.captcha_src *}" ng-click="body.refreshCaptcha()" />
+								</div>
+							</div>
+							<input type="hidden" ng-model="body.rf.marker_id" />
+						</form>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="close"></button>
+						<button type="button" class="btn btn-primary" data-i18n="submit" ng-click="body.rfSubmit()" ng-disabled="!body.submittable('rf')"></button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Image Modal -->
+		<div id="image-modal" class="modal fade" tabindex="-1" aria-hidden="true">
+			<div class="modal-dialog modal-lg">
+				<div class="modal-content">
+					<div class="modal-header bg-info text-dark">
+						<h5 class="modal-title" data-i18n="image"></h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<div id="carousel" class="carousel carousel-dark slide" data-bs-ride="carousel" data-bs-interval="false">
+							<div class="carousel-indicators" ng-show="body.carousel_imgs.length > 1">
+								<button type="button" data-bs-target="#carousel" data-bs-slide-to="{* $index *}"
+									ng-repeat="img in body.carousel_imgs"
+									ng-class="{active: $first}"></button>
+							</div>
+
+							<div class="carousel-inner text-center">
+								<div class="carousel-item" ng-repeat="img in body.carousel_imgs" ng-class="{active: $first}">
+									<img ng-src="{* img.url *}" />
+								</div>
+							</div>
+
+							<button type="button" class="carousel-control-prev" data-bs-target="#carousel" data-bs-slide="prev" ng-show="body.carousel_imgs.length > 1">
+								<span class="carousel-control-prev-icon" aria-hidden="true"></span>
+								<span class="visually-hidden">Previous</span>
+							</button>
+							<button type="button" class="carousel-control-next" data-bs-target="#carousel" data-bs-slide="next" ng-show="body.carousel_imgs.length > 1">
+								<span class="carousel-control-next-icon" aria-hidden="true"></span>
+								<span class="visually-hidden">Next</span>
+							</button>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="close"></button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Video Modal -->
+		<div id="video-modal" class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+			<div class="modal-dialog modal-lg">
+				<div class="modal-content">
+					<div class="modal-header bg-info text-dark">
+						<h5 class="modal-title" data-i18n="video"></h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<div class="video-container">
+							<div id="yt-player"></div>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="close"></button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Marker Modal -->
+		<div id="marker-modal" class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header bg-primary text-white">
+						<h5 class="modal-title" data-i18n="marker.edit"></h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<form name="mf">
+							<div class="mb-3">
+								<span class="text-danger fw-bold">&#42;</span>
+								<label for="mf-cat-id" class="form-label" data-i18n="type"></label>
+								<select id="mf-cat-id" class="form-select" required ng-model="body.mf.cat_id">
+									<option value="" data-i18n="menu.please_select"></option>
+									<option value="{* ::o.cat_id *}" ng-repeat="o in body.all_cats">{* o.name *}</option>
+								</select>
+							</div>
+							<div class="mb-3">
+								<span class="text-danger fw-bold">&#42;</span>
+								<label for="mf-title" class="form-label" data-i18n="title"></label>
+								<input type="text" id="mf-title" class="form-control" required ng-model="body.mf.title" />
+							</div>
+							<div class="mb-3">
+								<label for="mf-desc" class="form-label" data-i18n="description"></label>
+								<textarea id="mf-desc" class="form-control" rows="3" ng-model="body.mf.desc"></textarea>
+							</div>
+							<div class="mb-3">
+								<label for="mf-video-id" class="form-label" data-i18n="youtube_video_id"></label>
+								<input type="text" id="mf-video-id" class="form-control" ng-model="body.mf.video_id" />
+							</div>
+							<div class="mb-3">
+								<label for="mf-start-at" class="form-label" data-i18n="video_start_seconds"></label>
+								<input type="number" id="mf-start-at" class="form-control" min="0" ng-model="body.mf.video_start_secs" />
+							</div>
+							<div class="row align-items-center mb-3">
+								<div class="col-2 text-end">
+									<a id="img-upload-btn" href="javascript:;" role="button">
+										<i class="bi bi-upload fs-1"></i>
+									</a>
+									<input type="file" id="img-uploader" class="d-none" accept=".jpg,.jpeg,.png,.gif" multiple />
+								</div>
+								<div class="col-8">
+									<div class="img-wrapper">
+										<img class="img-thumbnail" data-mi-id="{* img.mi_id *}" data-fd-img-idx="{* img.fd_img_idx *}" data-idx="{* $index *}" ng-repeat="img in body.mf.images" ng-src="{* img.url *}" />
+									</div>
+								</div>
+								<div class="col-2"><i id="trash-can" class="bi bi-trash fs-1"></i></div>
+							</div>
+							<div class="mb-3">
+								<label class="form-label" data-i18n="latitude"></label>
+								<input type="text" class="form-control form-control-sm" readonly ng-model="body.mf.lat" />
+							</div>
+							<div class="mb-3">
+								<label class="form-label" data-i18n="longitude"></label>
+								<input type="text" class="form-control form-control-sm" readonly ng-model="body.mf.lng" />
+							</div>
+							<input type="hidden" ng-model="body.mf.map_id" />
+							<input type="hidden" ng-model="body.mf.marker_id" />
+							<input type="hidden" ng-model="body.mf.lat" />
+							<input type="hidden" ng-model="body.mf.lng" />
+						</form>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="close"></button>
+						<button type="button" class="btn btn-primary" data-i18n="save" ng-click="body.mfSubmit()" ng-disabled="!body.submittable('mf')"></button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+		<!-- 本地化依赖库 -->
+		<script src="vendor/bootstrap.bundle.min.js"></script>
+		<script src="vendor/jquery.min.js"></script>
+		<script src="vendor/jquery-ui.min.js"></script>
+		<script src="vendor/leaflet.min.js"></script>
+		<script src="vendor/oms.min.js"></script>
+		<script src="vendor/angular.min.js"></script>
+		<script src="vendor/i18next.min.js"></script>
+		<script src="vendor/toastr.min.js"></script>
+		<!-- YouTube 播放器：异步加载（仅视频弹窗用；被墙/离线时不影响主功能） -->
+		<script>
+		window.addEventListener('load', function () {
+			var s = document.createElement('script');
+			s.src = 'https://www.youtube.com/iframe_api';
+			s.async = true;
+			s.onerror = function () { /* 无法加载时忽略：仅视频弹窗不可用 */ };
+			document.head.appendChild(s);
+		});
+		</script>
+		<script src="ng/app.js"></script>
+		<!-- 进度导出/导入工具（本地版增强） -->
+		<script src="js/progress-tools.js?v=20261005e"></script>
+		<script>
+		angular.module("myApp")
+			.constant("TITLE", "Super Mario Odyssey Map")
+			.constant("BASE_URI", "");
+
+		angular.bootstrap(document, ["myApp"], {
+			strictDi: true
+		});
+		</script>
+	</body>
+</html>

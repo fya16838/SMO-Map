@@ -1,0 +1,23 @@
+# ===== 个人进度存档：不入库（由 server.py 自动创建）=====
+data/progress.json
+data/progress-backups/
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# ===== 编辑器 / 系统 =====
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*~
+Thumbs.db
+desktop.ini
+
+# ===== 临时文件 =====
+*.tmp
+*.bak
+*.orig
+*.rej
